@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.rabbitmq.AcknowledgableDelivery;
 import reactor.rabbitmq.Receiver;
 import reactor.rabbitmq.Sender;
 
@@ -23,6 +24,7 @@ public class EventConsumer {
   Flux<String> consume() {
     return receiver
         .consumeManualAck(QUEUE)
+        .doOnNext(AcknowledgableDelivery::ack)
         .limitRate(1)
         .delayElements(Duration.ofSeconds(1))
         .flatMap(delivery -> Mono.just(new String(delivery.getBody())));
